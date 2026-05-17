@@ -10,10 +10,11 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setColor('#2F3136')
         .setTitle('📋 Moderator Commands')
+        .setDescription('Alle verfügbaren Commands für Test Mods, Mods und Admins')
         .addFields(
           {
             name: '🔨 Moderation',
-            value: '`/mod-timeout` - Timeoutet Nutzer für 1 Tag\n`/mod-ban` - Bannt Nutzer permanent\n`/mod-profil` - Zeigt Nutzer-Profil\n`/mod-warnings` - Zeigt Bestrafungen',
+            value: '`/mod-timeout` - Timeoutet Nutzer für 1 Tag\n`/mod-ban` - Bannt Nutzer permanent\n`/mod-profil` - Zeigt Nutzer-Profil mit Infos\n`/mod-warnings` - Zeigt Verwarnungen',
             inline: false
           },
           {
@@ -23,7 +24,7 @@ module.exports = {
           },
           {
             name: '🎉 Fun',
-            value: '`/blobfisch` - Belegt jemanden mit Blobfisch (7 Tage Cooldown)',
+            value: '`/blobfisch` - Belegt jemanden mit Blobfisch (Cooldown: 7 Tage)',
             inline: false
           },
           {

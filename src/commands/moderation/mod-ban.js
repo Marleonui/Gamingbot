@@ -28,10 +28,17 @@ module.exports = {
     const grund = interaction.options.getString('grund') || 'Kein Grund angegeben';
     const messages = interaction.options.getInteger('messages') || 0;
 
+    if (target.id === interaction.user.id) {
+      return interaction.reply({
+        content: '❌ Du kannst dich nicht selbst bannen!',
+        ephemeral: true
+      });
+    }
+
     try {
       await interaction.guild.members.ban(target, {
         reason: grund,
-        deleteMessageDays: messages
+        deleteMessageSeconds: messages * 86400
       });
 
       const embed = new EmbedBuilder()
@@ -39,12 +46,15 @@ module.exports = {
         .setTitle('🚫 Nutzer gebannt')
         .addFields(
           { name: 'Nutzer', value: `<@${target.id}>`, inline: true },
-          { name: 'Grund', value: grund, inline: true },
+          { name: 'Moderator', value: `<@${interaction.user.id}>`, inline: true },
+          { name: 'Grund', value: grund, inline: false },
           { name: 'Gelöschte Nachrichten', value: `${messages} Tage`, inline: true }
         )
+        .setFooter({ text: `ID: ${target.id}` })
         .setTimestamp();
 
       await interaction.reply({ embeds: [embed] });
+      console.log(`[BAN] ${interaction.user.username} bannt ${target.username} - Grund: ${grund}`);
     } catch (error) {
       console.error(error);
       await interaction.reply({
