@@ -4,6 +4,7 @@ import { logModerationAction } from '../../utils/moderation.js';
 import { logger } from '../../utils/logger.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { TitanBotError, ErrorTypes } from '../../utils/errorHandler.js';
+import { isProtectedOwner, canPerformAction, getProtectionMessage } from '../../utils/ownerProtection.js';
 
 export default {
     data: new SlashCommandBuilder()
@@ -18,7 +19,7 @@ export default {
     .addStringOption((option) =>
       option.setName("reason").setDescription("Reason for the kick"),
     )
-.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
+    .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
   category: "moderation",
 
   async execute(interaction, config, client) {
@@ -51,6 +52,16 @@ export default {
           "Cannot kick bot",
           ErrorTypes.VALIDATION,
           "You cannot kick the bot."
+        );
+      }
+
+      // Check owner protection
+      if (isProtectedOwner(targetUser.id)) {
+        const protectionMsg = getProtectionMessage(targetUser, member);
+        throw new TitanBotError(
+          "Cannot kick protected owner",
+          ErrorTypes.PERMISSION,
+          protectionMsg || "Der Benutzer ist geschützt und kann nicht gekickt werden."
         );
       }
 
@@ -120,6 +131,3 @@ export default {
     }
   }
 };
-
-
-
