@@ -3,9 +3,9 @@ import { createEmbed, errorEmbed, successEmbed, infoEmbed, warningEmbed } from '
 import { logModerationAction } from '../../utils/moderation.js';
 import { logger } from '../../utils/logger.js';
 import { TitanBotError, ErrorTypes } from '../../utils/errorHandler.js';
-
-
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+import { isProtectedOwner, canPerformAction, getProtectionMessage } from '../../utils/ownerProtection.js';
+
 const durationChoices = [
     { name: "5 minutes", value: 5 },
     { name: "10 minutes", value: 10 },
@@ -15,6 +15,7 @@ const durationChoices = [
     { name: "1 day", value: 1440 },
     { name: "1 week", value: 10080 },
 ];
+
 export default {
     data: new SlashCommandBuilder()
         .setName("timeout")
@@ -31,12 +32,12 @@ export default {
                     .setName("duration")
                     .setDescription("Duration of the timeout")
                     .setRequired(true)
-.addChoices(...durationChoices),
+                    .addChoices(...durationChoices),
         )
         .addStringOption((option) =>
             option.setName("reason").setDescription("Reason for the timeout"),
         )
-.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+        .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
     category: "moderation",
 
     async execute(interaction, config, client) {
@@ -78,6 +79,17 @@ export default {
                     "You cannot timeout the bot."
                 );
             }
+
+            // Check owner protection
+            if (isProtectedOwner(targetUser.id)) {
+                const protectionMsg = getProtectionMessage(targetUser, member);
+                throw new TitanBotError(
+                    "Cannot timeout protected owner",
+                    ErrorTypes.PERMISSION,
+                    protectionMsg || "Der Benutzer ist geschützt und kann nicht getimeoutet werden."
+                );
+            }
+
             if (!member) {
                 throw new TitanBotError(
                     "Target not found",
@@ -139,6 +151,3 @@ export default {
         }
     }
 };
-
-
-
