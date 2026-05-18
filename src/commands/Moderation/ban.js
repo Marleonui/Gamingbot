@@ -5,6 +5,8 @@ import { logger } from '../../utils/logger.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { ModerationService } from '../../services/moderationService.js';
 import { handleInteractionError } from '../../utils/errorHandler.js';
+import { isProtectedOwner, canPerformAction, getProtectionMessage } from '../../utils/ownerProtection.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName("ban")
@@ -18,7 +20,7 @@ export default {
         .addStringOption((option) =>
             option.setName("reason").setDescription("Reason for the ban"),
         )
-.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
     category: "moderation",
 
     async execute(interaction, config, client) {
@@ -33,7 +35,14 @@ export default {
                 throw new Error("You cannot ban the bot.");
             }
 
-            
+            // Check owner protection
+            if (isProtectedOwner(user.id)) {
+                const protectionMsg = getProtectionMessage(user, null);
+                return await InteractionHelper.universalReply(interaction, {
+                    embeds: [warningEmbed(protectionMsg || 'Der Benutzer ist geschützt und kann nicht gebannt werden.')],
+                });
+            }
+
             const result = await ModerationService.banUser({
                 guild: interaction.guild,
                 user,
@@ -55,6 +64,3 @@ export default {
         }
     },
 };
-
-
-
